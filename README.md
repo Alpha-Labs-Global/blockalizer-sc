@@ -1,13 +1,11 @@
-# Sample Hardhat Project
-
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+# Blockalizer Smart Contract
 
 Try running some of the following tasks:
 
 ```shell
-npx hardhat help
+npx hardhat compile
 npx hardhat test
-REPORT_GAS=true npx hardhat test
+npx hardhat clean
+npx hardhat run scripts/deploy_blockalizer_v1.ts --network goerli
 npx hardhat node
-npx hardhat run scripts/deploy.ts
 ```
