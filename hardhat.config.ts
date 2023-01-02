@@ -14,7 +14,19 @@ const ALCHEMY_GOERLI_HTTPS =
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "etherscan_api_key";
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.17",
+  solidity: {
+    compilers: [
+      {
+        version: "0.8.17",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+    ],
+  },
   networks: {
     goerli: {
       url: ALCHEMY_GOERLI_HTTPS,

@@ -12,7 +12,7 @@ interface BlockalizerContract {
   symbol(): string;
   balanceOf(address: string): BigNumber;
   totalSupply(): BigNumber;
-  publicMint(uri: string, options: PayableOptions): string;
+  publicMint(uri: string, options: PayableOptions): void;
   tokenOfOwnerByIndex(address: string, index: BigNumber): BigNumber;
   tokenURI(tokenId: BigNumber): string;
   mintPrice(): BigNumber;
