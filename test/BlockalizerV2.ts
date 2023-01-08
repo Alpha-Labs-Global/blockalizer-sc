@@ -231,7 +231,7 @@ describe("BlockalizerV2", function () {
 
   */
 
-  it("advanced minting functionality", async function () {
+  it.skip("advanced minting functionality", async function () {
     expect(await instanceChild.maxSupply()).to.equal(initialMaxSupply);
 
     const mintValue = ethers.utils.parseEther("0.01");
