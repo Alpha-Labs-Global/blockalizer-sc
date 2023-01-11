@@ -45,6 +45,11 @@ async function fetchGeneration() {
   console.log(g);
 }
 
+async function fetchCollection() {
+  const g = await Controller.getCollection(BigNumber.from(0));
+  console.log(g);
+}
+
 // display();
 
-fetchGeneration();
+fetchCollection();

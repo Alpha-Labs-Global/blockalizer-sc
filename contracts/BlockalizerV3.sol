@@ -15,6 +15,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "operator-filter-registry/src/DefaultOperatorFilterer.sol";
 
 interface IBlockalizer is IERC721 {
     function currentTokenId() external returns (uint256 tokenId);
@@ -31,13 +32,14 @@ contract BlockalizerV3 is
     ERC721,
     ERC721Enumerable,
     ERC721URIStorage,
+    DefaultOperatorFilterer,
     IBlockalizer
 {
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIdCounter;
 
-    constructor() ERC721("Blockalizer:Chroma", "BLOCK") {}
+    constructor() ERC721("Blockalizer:Chroma", "CHROMA") {}
 
     function currentTokenId() public view returns (uint256) {
         return _tokenIdCounter.current();
@@ -53,6 +55,47 @@ contract BlockalizerV3 is
 
     function safeMint(address to, uint256 tokenId) public onlyOwner {
         super._safeMint(to, tokenId);
+    }
+
+    // The following functions are overrides required by OpenSea Operator Filter
+
+    function setApprovalForAll(
+        address operator,
+        bool approved
+    ) public override(ERC721, IERC721) onlyAllowedOperatorApproval(operator) {
+        super.setApprovalForAll(operator, approved);
+    }
+
+    function approve(
+        address operator,
+        uint256 tokenId
+    ) public override(ERC721, IERC721) onlyAllowedOperatorApproval(operator) {
+        super.approve(operator, tokenId);
+    }
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public override(ERC721, IERC721) onlyAllowedOperator(from) {
+        super.transferFrom(from, to, tokenId);
+    }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public override(ERC721, IERC721) onlyAllowedOperator(from) {
+        super.safeTransferFrom(from, to, tokenId);
+    }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory data
+    ) public override(ERC721, IERC721) onlyAllowedOperator(from) {
+        super.safeTransferFrom(from, to, tokenId, data);
     }
 
     // The following functions are overrides required by Solidity.
@@ -251,6 +294,10 @@ contract BlockalizerController is
 
     function addToWhitelist(address user) external onlyRole(UPGRADER_ROLE) {
         _whitelisted[user] = true;
+    }
+
+    function isInWhitelist(address user) external view returns (bool) {
+        return _whitelisted[user];
     }
 
     function supportsInterface(

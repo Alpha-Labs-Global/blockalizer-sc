@@ -53,27 +53,27 @@
     },
     {
       "address": "0xB0D4afd8879eD9F52b28595d31B441D079B2Ca07",
-      "txHash": "0x55f796153826d5dbdcfa9797a8c214d7355b415b746e251d3e1d04c4b2c46b52",
+      "txHash": "0xa38549758efd244313438ef0cfa80f9641c20411a4603e3567834c1a738df740",
       "kind": "uups"
     },
     {
       "address": "0x162A433068F51e18b7d13932F27e66a3f99E6890",
-      "txHash": "0x37b4326368ae70888ec34752f26f40a3662d5c9e38da179696ac443afef87ca3",
+      "txHash": "0x9f8c35f58798c404f6f8081496cca7f7b96023ed6225e24ed2afed292585c4be",
       "kind": "uups"
     },
     {
       "address": "0x1fA02b2d6A771842690194Cf62D91bdd92BfE28d",
-      "txHash": "0xc1e0990f41d7d024b6882be477e503541781aaaee9a4e8c729924192bb7e7f16",
+      "txHash": "0x217e6b62ca7a5e0de1f612db24bac266290f5868d219fb8c558b02b6d494c06d",
       "kind": "uups"
     },
     {
       "address": "0xdbC43Ba45381e02825b14322cDdd15eC4B3164E6",
-      "txHash": "0x0beddd93e5603ca7472ce59a2d136fc2d2262df2b153e330c6fd92081f433522",
+      "txHash": "0xeea46305f8b40ac374f5203c4a4b0641dd65e1e57945258cc9e417b56177976d",
       "kind": "uups"
     },
     {
       "address": "0x36b58F5C1969B7b6591D752ea6F5486D069010AB",
-      "txHash": "0x019e171c6846698eb2b4a17444079ad65497613f5270772f76d193737037ef20",
+      "txHash": "0xb7d90a554f5624b9bbf5551e80fe505f700a42bfa59c832f4cf3e39667631aa3",
       "kind": "uups"
     }
   ],
@@ -598,9 +598,9 @@
         }
       }
     },
-    "f526e2fe732c0b955231bb61ae02e6e47b78ed8f442e262ca33026af17387475": {
+    "89668df63187269f1cd35a07910b868daf58102b7e7f291f6e9557c8f0087608": {
       "address": "0x1429859428C0aBc9C2C47C8Ee9FBaf82cFA0F20f",
-      "txHash": "0xed092362c1ab400f95078150d39178f1ebc5656ad25507b7e283ce91fab377b5",
+      "txHash": "0xcc557f5302b435cf96ef0c79f59ce8630e6b23ca49d6ffc1356f78b68657d057",
       "layout": {
         "solcVersion": "0.8.17",
         "storage": [
@@ -675,7 +675,7 @@
             "slot": "251",
             "type": "t_struct(Counter)1566_storage",
             "contract": "BlockalizerController",
-            "src": "contracts/BlockalizerV3.sol:147"
+            "src": "contracts/BlockalizerV3.sol:190"
           },
           {
             "label": "_collections",
@@ -683,7 +683,7 @@
             "slot": "252",
             "type": "t_mapping(t_uint256,t_address)",
             "contract": "BlockalizerController",
-            "src": "contracts/BlockalizerV3.sol:148"
+            "src": "contracts/BlockalizerV3.sol:191"
           },
           {
             "label": "_generationCounter",
@@ -691,7 +691,7 @@
             "slot": "253",
             "type": "t_struct(Counter)1566_storage",
             "contract": "BlockalizerController",
-            "src": "contracts/BlockalizerV3.sol:151"
+            "src": "contracts/BlockalizerV3.sol:194"
           },
           {
             "label": "_generations",
@@ -699,7 +699,7 @@
             "slot": "254",
             "type": "t_mapping(t_uint256,t_address)",
             "contract": "BlockalizerController",
-            "src": "contracts/BlockalizerV3.sol:152"
+            "src": "contracts/BlockalizerV3.sol:195"
           },
           {
             "label": "_whitelisted",
@@ -707,7 +707,7 @@
             "slot": "255",
             "type": "t_mapping(t_address,t_bool)",
             "contract": "BlockalizerController",
-            "src": "contracts/BlockalizerV3.sol:155"
+            "src": "contracts/BlockalizerV3.sol:198"
           }
         ],
         "types": {

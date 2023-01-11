@@ -52,6 +52,7 @@ interface BlockalizerController {
   ): void;
   addToWhitelist(address: string): void;
   updateTokenURI(tokenId: BigNumber, uri: string): void;
+  isInWhitelist(address: string): boolean;
   withdraw(amount: BigNumber): void;
   withdrawAll(): void;
 
@@ -137,7 +138,7 @@ describe("BlockalizerV3", function () {
 
   it("deploys", async function () {
     expect(await instanceCollection.name()).to.equal("Blockalizer:Chroma");
-    expect(await instanceCollection.symbol()).to.equal("BLOCK");
+    expect(await instanceCollection.symbol()).to.equal("CHROMA");
     expect(await instanceCollection.totalSupply()).to.equal(0);
     expect(await instanceCollection.supportsInterface(_INTERFACE_ID_IERC721)).to
       .be.true;

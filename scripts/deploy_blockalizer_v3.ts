@@ -6,11 +6,12 @@ async function main() {
     "BlockalizerController"
   );
 
-  const mintPrice = ethers.utils.parseEther("0.015");
-  const maxSupply = BigNumber.from(1000);
-  const startTime = BigNumber.from(Math.floor(Date.now() / 1000));
-  const expiryTime = startTime.add(30 * 24 * 60 * 60);
-  const maxMintsPerWallet = BigNumber.from(3);
+  const mintPrice = ethers.utils.parseEther("0.001");
+  const maxSupply = BigNumber.from(50);
+  const timeNow = BigNumber.from(Math.floor(Date.now() / 1000));
+  const startTime = timeNow.add(45 * 60);
+  const expiryTime = startTime.add(1 * 60 * 60);
+  const maxMintsPerWallet = BigNumber.from(15);
 
   const instance = await upgrades.deployProxy(
     ContractFactory,
