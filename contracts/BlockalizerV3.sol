@@ -28,11 +28,11 @@ interface IBlockalizer is IERC721 {
 }
 
 contract BlockalizerV3 is
+    DefaultOperatorFilterer,
     Ownable,
     ERC721,
     ERC721Enumerable,
     ERC721URIStorage,
-    DefaultOperatorFilterer,
     IBlockalizer
 {
     using Counters for Counters.Counter;
@@ -292,8 +292,12 @@ contract BlockalizerController is
         );
     }
 
-    function addToWhitelist(address user) external onlyRole(UPGRADER_ROLE) {
-        _whitelisted[user] = true;
+    function addToWhitelist(
+        address[] calldata users
+    ) external onlyRole(UPGRADER_ROLE) {
+        for (uint i = 0; i < users.length; i++) {
+            _whitelisted[users[i]] = true;
+        }
     }
 
     function isInWhitelist(address user) external view returns (bool) {

@@ -11,6 +11,8 @@ const TEST_PRIVATE_KEY =
 const PRIVATE_KEY = process.env.PRIVATE_KEY || TEST_PRIVATE_KEY;
 const ALCHEMY_GOERLI_HTTPS =
   process.env.ALCHEMY_GOERLI_HTTPS || "alchemy_goerli_https";
+const ALCHEMY_MAINNET_HTTPS =
+  process.env.ALCHEMY_MAINNET_HTTPS || "alchemy_mainnet_https";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "etherscan_api_key";
 
 const config: HardhatUserConfig = {
@@ -30,6 +32,10 @@ const config: HardhatUserConfig = {
   networks: {
     goerli: {
       url: ALCHEMY_GOERLI_HTTPS,
+      accounts: [PRIVATE_KEY],
+    },
+    mainnet: {
+      url: ALCHEMY_MAINNET_HTTPS,
       accounts: [PRIVATE_KEY],
     },
   },

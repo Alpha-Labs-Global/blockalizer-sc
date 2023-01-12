@@ -50,7 +50,7 @@ interface BlockalizerController {
     uri: string,
     options: PayableOptions
   ): void;
-  addToWhitelist(address: string): void;
+  addToWhitelist(addresses: string[]): void;
   updateTokenURI(tokenId: BigNumber, uri: string): void;
   isInWhitelist(address: string): boolean;
   withdraw(amount: BigNumber): void;
@@ -336,7 +336,7 @@ describe("BlockalizerV3", function () {
     await expect(
       instance.publicMint(collectionId, uri, options)
     ).to.be.revertedWith(/Minting not yet live/);
-    await instance.addToWhitelist(addr2.address);
+    await instance.addToWhitelist([addr2.address]);
     await instance.connect(addr2).publicMint(collectionId, uri, options);
     expect(await instanceCollection.totalSupply()).to.equal(11);
 
