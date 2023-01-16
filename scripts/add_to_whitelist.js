@@ -1,3 +1,4 @@
+/*
 const ethers = require("ethers");
 
 const BigNumber = ethers.BigNumber;
@@ -319,3 +320,4 @@ async function addWhitelistBatches() {
 addWhitelistBatches(addresses);
 
 // addToWhitelist(initialAddresses);
+*/
