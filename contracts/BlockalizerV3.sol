@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "hardhat/console.sol";
-
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
@@ -16,16 +14,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "operator-filter-registry/src/DefaultOperatorFilterer.sol";
-
-interface IBlockalizer is IERC721 {
-    function currentTokenId() external returns (uint256 tokenId);
-
-    function incrementTokenId() external;
-
-    function setTokenURI(uint256 tokenId, string memory _uri) external;
-
-    function safeMint(address to, uint256 tokenId) external;
-}
+import "./interfaces/IBlockalizer.sol";
 
 contract BlockalizerV3 is
     DefaultOperatorFilterer,
