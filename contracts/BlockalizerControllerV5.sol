@@ -9,7 +9,6 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 import "./interfaces/IBlockalizer.sol";
@@ -20,7 +19,6 @@ contract BlockalizerControllerV5 is
     AccessControlUpgradeable,
     UUPSUpgradeable
 {
-    using Address for address payable;
     using ECDSA for bytes32;
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
@@ -41,7 +39,7 @@ contract BlockalizerControllerV5 is
     event Generation(uint256 indexed _id, address indexed _address);
 
     error GenerationExpired(uint256 timestamp);
-    error MaxMinted(address sender, uint256 maximum);
+    error MaxMinted(uint256 maximum);
     error PaymentDeficit(uint256 value, uint256 price);
     error MintNotAllowed(address sender);
 
@@ -51,11 +49,11 @@ contract BlockalizerControllerV5 is
     }
 
     function initialize(
-        uint256 _mintPrice,
-        uint256 _maxSupply,
-        uint256 _expiryTime,
-        uint256 _startTime,
-        uint16 _maxMintsPerWallet
+        uint96 _mintPrice,
+        uint96 _maxSupply,
+        uint32 _expiryTime,
+        uint32 _startTime,
+        uint32 _maxMintsPerWallet
     ) public initializer {
         __AccessControl_init();
         __UUPSUpgradeable_init();
@@ -95,11 +93,11 @@ contract BlockalizerControllerV5 is
     }
 
     function _initializeGeneration(
-        uint256 _mintPrice,
-        uint256 _maxSupply,
-        uint256 _expiryTime,
-        uint256 _startTime,
-        uint16 _maxMintsPerWallet
+        uint96 _mintPrice,
+        uint96 _maxSupply,
+        uint32 _expiryTime,
+        uint32 _startTime,
+        uint32 _maxMintsPerWallet
     ) internal {
         if (_expiryTime <= block.timestamp) {
             revert GenerationExpired(block.timestamp);
@@ -110,7 +108,7 @@ contract BlockalizerControllerV5 is
             _maxSupply,
             _expiryTime,
             _startTime,
-            _maxMintsPerWallet
+            uint16(_maxMintsPerWallet)
         );
         _generations[generationId] = address(generation);
 
@@ -149,7 +147,7 @@ contract BlockalizerControllerV5 is
             _maxSupply,
             _expiryTime,
             _startTime,
-            _maxMintsPerWallet
+            uint16(_maxMintsPerWallet)
         );
     }
 
@@ -174,10 +172,10 @@ contract BlockalizerControllerV5 is
         );
         uint256 tokenCount = generation.getTokenCount();
         if (generation.balanceOf(_msgSender()) >= generation.maxMintsPerWallet()) {
-            revert MaxMinted(_msgSender(), generation.maxMintsPerWallet());
+            revert MaxMinted(generation.maxMintsPerWallet());
         }
         if (generation.maxSupply() <= tokenCount) {
-            revert MaxMinted(address(0), generation.maxSupply());
+            revert MaxMinted(generation.maxSupply());
         }
         if (msg.value != generation.mintPrice()) {
             revert PaymentDeficit(msg.value, generation.mintPrice());
@@ -201,6 +199,6 @@ contract BlockalizerControllerV5 is
         uint256 balance = address(this).balance;
         amount = amount > balance ? balance : amount;
         amount = amount == 0 ? balance : amount;
-        payable(msg.sender).sendValue(amount);
+        payable(msg.sender).transfer(amount);
     }
 }
