@@ -112,8 +112,14 @@ describe("BlockalizerControllerV5", function () {
     // check can't mint more
     const mintValue = ethers.utils.parseEther("0.01")
     const options = { value: mintValue }
-    const uri = "https://www.example.com/cat.json"
-    const sig = await addr1.signMessage(uri)
+    const uriRaw = "https://www.example.com/cat.json"
+    const uri = ethers.utils.toUtf8Bytes(uriRaw)
+    const messageHash = ethers.utils.solidityKeccak256(
+      ['bytes'],
+      [uri],
+    )
+    const messageHashBinary = ethers.utils.arrayify(messageHash)
+    const sig = await owner.signMessage(messageHashBinary)
     for (let i = 0; i < 5; i++) {
       await expect(firstInstance.publicMint(collectionId, uri, sig, options))
         .to.emit(instanceCollection, 'Transfer')
@@ -148,7 +154,7 @@ describe("BlockalizerControllerV5", function () {
 
     const randomTokenId = 4
     await expect(instanceCollection.tokenURI(randomTokenId))
-      .eventually.to.equal(uri)
+      .eventually.to.equal(ethers.utils.toUtf8String(uri))
 
     await expect(first2.publicMint(
       collectionId,
@@ -159,6 +165,19 @@ describe("BlockalizerControllerV5", function () {
       .to.be.revertedWithCustomError(firstInstance, 'MaxMinted')
       .withArgs(
         await instanceGeneration.maxSupply(),
+      )
+    const balance = await first1.provider.getBalance(first1.address)
+    expect(balance).to.be.greaterThan(0)
+
+    await expect(first1.withdraw(0, ethers.constants.AddressZero))
+      .to.revertedWith(`AccessControl: account ${
+        (await first1.signer.getAddress()).toLowerCase()
+      } is missing role ${withdrawerRole}`)
+
+    await expect(first1.connect(owner).withdraw(0, ethers.constants.AddressZero))
+      .to.changeEtherBalances(
+        [first1.address, owner.address],
+        [balance.mul(-1), balance],
       )
   })
 })

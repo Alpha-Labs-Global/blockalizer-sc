@@ -14,6 +14,8 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./interfaces/IBlockalizer.sol";
 import "./BlockalizerV3.sol";
 
+import "hardhat/console.sol";
+
 contract BlockalizerControllerV5 is
     Initializable,
     AccessControlUpgradeable,
@@ -58,11 +60,12 @@ contract BlockalizerControllerV5 is
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
-        _grantRole(WITHDRAWER_ROLE, msg.sender);
-        _grantRole(WHITELISTER_ROLE, msg.sender);
-        _grantRole(GENERATOR_ROLE, msg.sender);
+        address sender = _msgSender();
+        _grantRole(DEFAULT_ADMIN_ROLE, sender);
+        _grantRole(UPGRADER_ROLE, sender);
+        _grantRole(WITHDRAWER_ROLE, sender);
+        _grantRole(WHITELISTER_ROLE, sender);
+        _grantRole(GENERATOR_ROLE, sender);
 
         _initializeCollection();
         _initializeGeneration(
@@ -161,7 +164,7 @@ contract BlockalizerControllerV5 is
 
     function publicMint(
         uint256 _collectionId,
-        string memory _uri,
+        bytes memory _uri,
         bytes memory sig
     ) public payable {
         IBlockalizer collection = IBlockalizer(_collections[_collectionId]);
@@ -186,19 +189,29 @@ contract BlockalizerControllerV5 is
         if (generation.expiryTime() <= block.timestamp) {
             revert GenerationExpired(block.timestamp);
         }
-        if (hasRole(GENERATOR_ROLE, keccak256(abi.encodePacked(_uri)).recover(sig))) {
+        address recovered = recoverAddress(
+            keccak256(abi.encodePacked(_uri)),
+            sig
+        );
+        if (!hasRole(GENERATOR_ROLE, recovered)) {
             revert MintNotAllowed(_msgSender());
         }
-        collection.safeMint(msg.sender, tokenId);
-        collection.setTokenURI(tokenId, _uri);
-        generation.incrementTokenCount(msg.sender);
+        collection.safeMint(_msgSender(), tokenId);
+        collection.setTokenURI(tokenId, string(_uri));
+        generation.incrementTokenCount(_msgSender());
         collection.incrementTokenId();
     }
 
-    function withdraw(uint256 amount) public onlyRole(WITHDRAWER_ROLE) {
+    function recoverAddress(
+        bytes32 hash,
+        bytes memory signature
+    ) internal pure returns (address) {
+        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)).recover(signature);
+    }
+    function withdraw(uint96 amount, address recipient) public onlyRole(WITHDRAWER_ROLE) {
         uint256 balance = address(this).balance;
-        amount = amount > balance ? balance : amount;
-        amount = amount == 0 ? balance : amount;
-        payable(msg.sender).transfer(amount);
+        uint256 _amount = amount > balance ? balance : amount;
+        _amount = _amount == 0 ? balance : _amount;
+        payable(recipient == address(0) ? _msgSender() : recipient).transfer(_amount);
     }
 }
