@@ -10,13 +10,15 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 import "./interfaces/IBlockalizer.sol";
 import "./BlockalizerV3.sol";
 
-import "hardhat/console.sol";
+// uncomment this line when debugging
+// import "hardhat/console.sol";
 
-contract BlockalizerControllerV5 is
+contract BlockalizerControllerV3 is
     Initializable,
     AccessControlUpgradeable,
     UUPSUpgradeable
@@ -26,24 +28,24 @@ contract BlockalizerControllerV5 is
 
     CountersUpgradeable.Counter private _collectionIdCounter;
     mapping(uint256 => address) private _collections;
+    event Collection(uint256 indexed _id, address indexed _address);
 
     CountersUpgradeable.Counter private _generationCounter;
     mapping(uint256 => address) private _generations;
+    event Generation(uint256 indexed _id, address indexed _address);
 
     mapping(address => bool) private _whitelisted;
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
-    bytes32 public constant WITHDRAWER_ROLE = keccak256("WITHDRAWER_ROLE");
-    bytes32 public constant WHITELISTER_ROLE = keccak256("WHITELISTER_ROLE");
-    bytes32 public constant GENERATOR_ROLE = keccak256("GENERATOR_ROLE");
 
-    event Collection(uint256 indexed _id, address indexed _address);
-    event Generation(uint256 indexed _id, address indexed _address);
-
-    error GenerationExpired(uint256 timestamp);
     error MaxMinted(uint256 maximum);
+    error UserMaxMinted(uint256 maximum);
     error PaymentDeficit(uint256 value, uint256 price);
     error MintNotAllowed(address sender);
+    error MintNotLive();
+    error InvalidGeneration();
+
+    bytes32 public merkleRoot;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -63,9 +65,6 @@ contract BlockalizerControllerV5 is
         address sender = _msgSender();
         _grantRole(DEFAULT_ADMIN_ROLE, sender);
         _grantRole(UPGRADER_ROLE, sender);
-        _grantRole(WITHDRAWER_ROLE, sender);
-        _grantRole(WHITELISTER_ROLE, sender);
-        _grantRole(GENERATOR_ROLE, sender);
 
         _initializeCollection();
         _initializeGeneration(
@@ -89,12 +88,6 @@ contract BlockalizerControllerV5 is
         emit Collection(collectionId, _collections[collectionId]);
     }
 
-    function getCollection(
-        uint256 _collectionId
-    ) external view returns (address) {
-        return _collections[_collectionId];
-    }
-
     function _initializeGeneration(
         uint96 _mintPrice,
         uint96 _maxSupply,
@@ -103,7 +96,7 @@ contract BlockalizerControllerV5 is
         uint32 _maxMintsPerWallet
     ) internal {
         if (_expiryTime <= block.timestamp) {
-            revert GenerationExpired(block.timestamp);
+            revert InvalidGeneration();
         }
         uint256 generationId = _generationCounter.current();
         BlockalizerGenerationV2 generation = new BlockalizerGenerationV2(
@@ -118,6 +111,12 @@ contract BlockalizerControllerV5 is
         emit Generation(generationId, _generations[generationId]);
     }
 
+    function getCollection(
+        uint256 _collectionId
+    ) external view returns (address) {
+        return _collections[_collectionId];
+    }
+
     function getGenerationCount() public view returns (uint256) {
         return _generationCounter.current();
     }
@@ -125,10 +124,6 @@ contract BlockalizerControllerV5 is
     function getGeneration() public view returns (address) {
         uint256 generationId = _generationCounter.current();
         return _generations[generationId];
-    }
-
-    function isInWhitelist(address user) external view returns (bool) {
-        return _whitelisted[user];
     }
 
     function supportsInterface(
@@ -154,64 +149,126 @@ contract BlockalizerControllerV5 is
         );
     }
 
-    function addToWhitelist(
-        address[] calldata users
-    ) external onlyRole(WHITELISTER_ROLE) {
-        for (uint256 i = 0; i < users.length; ++i) {
-            _whitelisted[users[i]] = true;
-        }
+    function withdrawAll() public onlyRole(UPGRADER_ROLE) {
+        address payable _to = payable(msg.sender);
+        _to.transfer(address(this).balance);
     }
 
-    function publicMint(
+    function setTokenURI(
         uint256 _collectionId,
+        uint256 _tokenId,
+        string memory _uri
+    ) public onlyRole(UPGRADER_ROLE) {
+        IBlockalizer collection = IBlockalizer(_collections[_collectionId]);
+        collection.setTokenURI(_tokenId, _uri);
+    }
+
+    function setMerkleRoot(
+        bytes32 merkleRoot_
+    ) external onlyRole(UPGRADER_ROLE) {
+        merkleRoot = merkleRoot_;
+    }
+
+    function preMint(
         bytes memory _uri,
-        bytes memory sig
+        bytes memory sig,
+        bytes32[] calldata merkleProof
     ) public payable {
+        uint256 _collectionId = _collectionIdCounter.current();
         IBlockalizer collection = IBlockalizer(_collections[_collectionId]);
         uint256 tokenId = collection.currentTokenId();
         uint256 generationId = _generationCounter.current();
         BlockalizerGenerationV2 generation = BlockalizerGenerationV2(
             _generations[generationId]
         );
-        uint256 tokenCount = generation.getTokenCount();
-        if (generation.balanceOf(_msgSender()) >= generation.maxMintsPerWallet()) {
-            revert MaxMinted(generation.maxMintsPerWallet());
+
+        if (
+            !isOnWhitelist(merkleProof) ||
+            block.timestamp > generation.expiryTime()
+        ) {
+            revert MintNotLive();
         }
-        if (generation.maxSupply() <= tokenCount) {
-            revert MaxMinted(generation.maxSupply());
-        }
-        if (msg.value != generation.mintPrice()) {
-            revert PaymentDeficit(msg.value, generation.mintPrice());
-        }
-        if (!_whitelisted[_msgSender()] && block.timestamp <= generation.startTime()) {
-            revert MintNotAllowed(_msgSender());
-        }
-        if (generation.expiryTime() <= block.timestamp) {
-            revert GenerationExpired(block.timestamp);
-        }
-        address recovered = recoverAddress(
-            keccak256(abi.encodePacked(_uri)),
-            sig
-        );
-        if (!hasRole(GENERATOR_ROLE, recovered)) {
-            revert MintNotAllowed(_msgSender());
-        }
+
+        checkMintRequirements(generationId, _uri, sig, tokenId);
+
         collection.safeMint(_msgSender(), tokenId);
         collection.setTokenURI(tokenId, string(_uri));
         generation.incrementTokenCount(_msgSender());
         collection.incrementTokenId();
     }
 
+    function isOnWhitelist(
+        bytes32[] calldata merkleProof
+    ) internal view returns (bool) {
+        bytes32 account = keccak256(abi.encodePacked(msg.sender));
+        return MerkleProof.verify(merkleProof, merkleRoot, account);
+    }
+
+    function publicMint(bytes memory _uri, bytes memory sig) public payable {
+        uint256 _collectionId = _collectionIdCounter.current();
+        IBlockalizer collection = IBlockalizer(_collections[_collectionId]);
+        uint256 tokenId = collection.currentTokenId();
+        uint256 generationId = _generationCounter.current();
+        BlockalizerGenerationV2 generation = BlockalizerGenerationV2(
+            _generations[generationId]
+        );
+
+        if (
+            block.timestamp < generation.startTime() ||
+            block.timestamp > generation.expiryTime()
+        ) {
+            revert MintNotLive();
+        }
+
+        checkMintRequirements(generationId, _uri, sig, tokenId);
+
+        collection.safeMint(_msgSender(), tokenId);
+        collection.setTokenURI(tokenId, string(_uri));
+        collection.incrementTokenId();
+        generation.incrementTokenCount(_msgSender());
+    }
+
+    function checkMintRequirements(
+        uint256 _generationId,
+        bytes memory _uri,
+        bytes memory sig,
+        uint256 tokenId
+    ) internal {
+        BlockalizerGenerationV2 _generation = BlockalizerGenerationV2(
+            _generations[_generationId]
+        );
+        if (msg.value != _generation.mintPrice()) {
+            revert PaymentDeficit(msg.value, _generation.mintPrice());
+        }
+
+        uint256 tokenCount = _generation.getTokenCount();
+        if (_generation.maxSupply() <= tokenCount) {
+            revert MaxMinted(_generation.maxSupply());
+        }
+
+        address recovered = recoverAddress(
+            keccak256(abi.encodePacked(_uri, tokenId)),
+            sig
+        );
+        if (!hasRole(UPGRADER_ROLE, recovered)) {
+            revert MintNotAllowed(_msgSender());
+        }
+
+        if (
+            _generation.balanceOf(_msgSender()) >=
+            _generation.maxMintsPerWallet()
+        ) {
+            revert UserMaxMinted(_generation.maxMintsPerWallet());
+        }
+    }
+
     function recoverAddress(
         bytes32 hash,
         bytes memory signature
     ) internal pure returns (address) {
-        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)).recover(signature);
-    }
-    function withdraw(uint96 amount, address recipient) public onlyRole(WITHDRAWER_ROLE) {
-        uint256 balance = address(this).balance;
-        uint256 _amount = amount > balance ? balance : amount;
-        _amount = _amount == 0 ? balance : _amount;
-        payable(recipient == address(0) ? _msgSender() : recipient).transfer(_amount);
+        return
+            keccak256(
+                abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)
+            ).recover(signature);
     }
 }

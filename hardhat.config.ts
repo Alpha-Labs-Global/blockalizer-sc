@@ -1,6 +1,7 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@openzeppelin/hardhat-upgrades";
+import "hardhat-gas-reporter";
 
 const dotenv = require("dotenv");
 dotenv.config({ path: __dirname + "/.env" });

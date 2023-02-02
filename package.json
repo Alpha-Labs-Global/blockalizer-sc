@@ -23,14 +23,16 @@
     "dotenv": "^16.0.3",
     "ethers": "^5.7.2",
     "hardhat": "^2.12.4",
-    "hardhat-gas-reporter": "^1.0.8",
+    "hardhat-gas-reporter": "^1.0.9",
+    "keccak256": "^1.0.6",
+    "merkletreejs": "^0.3.9",
     "solidity-coverage": "^0.8.0",
     "ts-node": ">=8.0.0",
     "typechain": "^8.1.0",
     "typescript": ">=4.5.0"
   },
   "scripts": {
-    "test": "hardhat test ./test/BlockalizerControllerV5.test.ts"
+    "test": "hardhat test ./test/BlockalizerV5.ts"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.8.0",
