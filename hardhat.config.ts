@@ -1,10 +1,11 @@
+import dotenv from 'dotenv'
+dotenv.config({
+  path: __dirname + "/.env",
+});
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@openzeppelin/hardhat-upgrades";
 import "hardhat-gas-reporter";
-
-const dotenv = require("dotenv");
-dotenv.config({ path: __dirname + "/.env" });
 
 const TEST_PRIVATE_KEY =
   "0000000000000000000000000000000000000000000000000000000000000000";
@@ -29,6 +30,9 @@ const config: HardhatUserConfig = {
         },
       },
     ],
+  },
+  typechain: {
+    outDir: './artifacts/types'
   },
   networks: {
     goerli: {

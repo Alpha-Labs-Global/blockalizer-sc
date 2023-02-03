@@ -1,3 +1,8 @@
+import dotenv from 'dotenv'
+dotenv.config({
+  path: __dirname + "/../../.env",
+});
+
 import { ethers, BigNumber } from "ethers";
 import { MerkleTree } from "merkletreejs";
 import keccak256 from "keccak256";
@@ -6,17 +11,11 @@ import {
   BlockalizerControllerV3,
   BlockalizerV3,
   BlockalizerGenerationV2,
-} from "../../typechain-types";
+} from "../../artifacts/types";
 
-const dotenv = require("dotenv");
-dotenv.config({ path: __dirname + "/../../.env" });
-
-const controllerABI =
-  require("../../artifacts/contracts/BlockalizerV5.sol/BlockalizerControllerV3.json").abi;
-const collectionABI =
-  require("../../artifacts/contracts/BlockalizerV3.sol/BlockalizerV3.json").abi;
-const generationABI =
-  require("../../artifacts/contracts/BlockalizerV3.sol/BlockalizerGenerationV2.json").abi;
+import { abi as controllerABI } from "../../artifacts/contracts/BlockalizerV5.sol/BlockalizerControllerV3.json";
+import { abi as collectionABI } from "../../artifacts/contracts/BlockalizerV3.sol/BlockalizerV3.json";
+import { abi as generationABI } from "../../artifacts/contracts/BlockalizerV3.sol/BlockalizerGenerationV2.json";
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "private_key";
 const ALCHEMY_GOERLI_API_KEY = process.env.ALCHEMY_GOERLI_API_KEY;
@@ -28,27 +27,25 @@ const provider = new ethers.providers.AlchemyProvider(
   ALCHEMY_GOERLI_API_KEY
 );
 const signer = new ethers.Wallet(PRIVATE_KEY, provider);
-// @ts-ignore
-const controller: BlockalizerControllerV3 = new ethers.Contract(
+const controller = new ethers.Contract(
   CONTROLLER_ADDRESS,
   controllerABI,
   signer
-);
+) as BlockalizerControllerV3;
 
 async function getCount() {
   const collectionAddress = await controller.getCollection(BigNumber.from(0));
-  // @ts-ignore
-  const collection: BlockalizerV3 = new ethers.Contract(
+  const collection = new ethers.Contract(
     collectionAddress,
     collectionABI,
     signer
-  );
+  ) as BlockalizerV3;
   const tokenId = await collection.currentTokenId();
   console.log("Current token ID: ", tokenId.toNumber());
   return tokenId.toNumber();
 }
 
-async function isAuthorized(address: string) {
+export async function isAuthorized(address: string) {
   const upgraderRole = ethers.utils.keccak256(
     ethers.utils.toUtf8Bytes("UPGRADER_ROLE")
   );
@@ -57,14 +54,13 @@ async function isAuthorized(address: string) {
   return role;
 }
 
-async function isLive() {
+export async function isLive() {
   const generationAddress = await controller.getGeneration();
-  // @ts-ignore
-  const generation: BlockalizerGenerationV2 = new ethers.Contract(
+  const generation = new ethers.Contract(
     generationAddress,
     generationABI,
     signer
-  );
+  ) as BlockalizerGenerationV2;
   const gen = (await controller.getGenerationCount()).toNumber();
   const start = new Date((await generation.startTime()).toNumber() * 1000);
   const end = new Date((await generation.expiryTime()).toNumber() * 1000);
@@ -78,7 +74,7 @@ async function isLive() {
   return live;
 }
 
-async function startNewGeneration() {
+export async function startNewGeneration() {
   const mintPrice = ethers.utils.parseEther("0.001");
   const maxSupply = BigNumber.from(20);
   const oneWeek = 7 * 24 * 60 * 60;
@@ -96,7 +92,7 @@ async function startNewGeneration() {
   );
 }
 
-async function mintToken() {
+export async function mintToken() {
   const uri =
     "https://gateway.pinata.cloud/ipfs/QmQa26WBRsGpUpyJcY2k9ygo7SfvUEpGuwJSp8LJQmVeYm";
   const uriBytes = ethers.utils.toUtf8Bytes(uri);
@@ -118,7 +114,7 @@ async function mintToken() {
   }
 }
 
-async function addMerkleRoot(addresses: Array<string>) {
+export async function addMerkleRoot(addresses: Array<string>) {
   const leaves = addresses.map((address) =>
     ethers.utils.solidityKeccak256(["address"], [address])
   );

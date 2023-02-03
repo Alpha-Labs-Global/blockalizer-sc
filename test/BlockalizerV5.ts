@@ -10,7 +10,7 @@ import {
   BlockalizerControllerV3,
   BlockalizerGenerationV2,
   BlockalizerV3,
-} from "../typechain-types";
+} from "../artifacts/types";
 
 import { getSignature } from "./utils/signature";
 import { multiMint } from "./utils/minting";
