@@ -98,7 +98,7 @@ async function startNewGeneration() {
 
 async function mintToken() {
   const uri =
-    "https://gateway.pinata.cloud/ipfs/QmciZDSTESJFiTPpLt1nBtt6kqDUWrTzd9Xv6TXg38kmSa";
+    "https://gateway.pinata.cloud/ipfs/QmQa26WBRsGpUpyJcY2k9ygo7SfvUEpGuwJSp8LJQmVeYm";
   const uriBytes = ethers.utils.toUtf8Bytes(uri);
   const tokenId = await getCount();
   const messageHash = ethers.utils.solidityKeccak256(
@@ -167,10 +167,10 @@ async function preMint(proof: string[]) {
 }
 
 // addMerkleRoot(whitelisted);
-// const proof = getProof(whitelisted, 0);
-// preMint(proof);
+const proof = getProof(whitelisted, 0);
+preMint(proof);
 // isLive();
 // isAuthorized(signer.address);
 // startNewGeneration();
 // mintToken();
-getCount();
+// getCount();

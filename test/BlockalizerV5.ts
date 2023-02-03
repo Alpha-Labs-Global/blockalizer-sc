@@ -38,6 +38,9 @@ describe("BlockalizerV5", function () {
   const upgraderRole = ethers.utils.keccak256(
     ethers.utils.toUtf8Bytes("UPGRADER_ROLE")
   );
+  const authorizerRole = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes("AUTHORIZER_ROLE")
+  );
 
   async function multiMintHelper(minter: SignerWithAddress, count: number) {
     await multiMint(
@@ -82,6 +85,8 @@ describe("BlockalizerV5", function () {
     );
     instanceGeneration = childContract2.attach(generationAddress);
     [owner, addr1, addr2, ...rest] = await ethers.getSigners();
+
+    instance.grantRole(authorizerRole, owner.address);
   });
 
   afterEach(async () => {
@@ -123,6 +128,7 @@ describe("BlockalizerV5", function () {
 
   it("has roles set up", async function () {
     expect(await instance.hasRole(upgraderRole, owner.address)).to.be.true;
+    expect(await instance.hasRole(authorizerRole, owner.address)).to.be.true;
 
     const defaultAdminRole = await instance.getRoleAdmin(upgraderRole);
     expect(await instance.hasRole(defaultAdminRole, owner.address)).to.be.true;

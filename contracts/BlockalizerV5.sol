@@ -47,6 +47,8 @@ contract BlockalizerControllerV3 is
 
     bytes32 public merkleRoot;
 
+    bytes32 public constant AUTHORIZER_ROLE = keccak256("AUTHORIZER_ROLE");
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -138,7 +140,7 @@ contract BlockalizerControllerV3 is
         uint32 _expiryTime,
         uint32 _startTime,
         uint32 _maxMintsPerWallet
-    ) external onlyRole(UPGRADER_ROLE) {
+    ) external onlyRole(AUTHORIZER_ROLE) {
         _generationCounter.increment();
         _initializeGeneration(
             _mintPrice,
@@ -158,14 +160,14 @@ contract BlockalizerControllerV3 is
         uint256 _collectionId,
         uint256 _tokenId,
         string memory _uri
-    ) public onlyRole(UPGRADER_ROLE) {
+    ) public onlyRole(AUTHORIZER_ROLE) {
         IBlockalizer collection = IBlockalizer(_collections[_collectionId]);
         collection.setTokenURI(_tokenId, _uri);
     }
 
     function setMerkleRoot(
         bytes32 merkleRoot_
-    ) external onlyRole(UPGRADER_ROLE) {
+    ) external onlyRole(AUTHORIZER_ROLE) {
         merkleRoot = merkleRoot_;
     }
 
@@ -250,7 +252,7 @@ contract BlockalizerControllerV3 is
             keccak256(abi.encodePacked(_uri, tokenId)),
             sig
         );
-        if (!hasRole(UPGRADER_ROLE, recovered)) {
+        if (!hasRole(AUTHORIZER_ROLE, recovered)) {
             revert MintNotAllowed(_msgSender());
         }
 

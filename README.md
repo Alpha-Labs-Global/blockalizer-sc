@@ -28,7 +28,7 @@ IMPLEMENTATION ADDRESS V2 `0x0fa9288d6f3090c3456d84267dcfe8bed245cdc3`
 
 ```
 npx hardhat run scripts/update_blockalizer_v5.ts --network goerli
-npx hardhat verify --network goerli 0x41fa7fc2516fbcdac31169bbdf2e59e30cea8220
+npx hardhat verify --network goerli 0x12d146fe339de2c0a6974c43724d153a87a0b237
 ```
 
 ### To update
@@ -37,9 +37,6 @@ npx hardhat verify --network goerli 0x41fa7fc2516fbcdac31169bbdf2e59e30cea8220
 npx hardhat run scripts/update_blockalizer_v4.ts --network mainnet
 npx hardhat verify --network mainnet 0x0fa9288d6f3090c3456d84267dcfe8bed245cdc3
 ```
-
-npx hardhat run scripts/mint_testnet.ts --network goerli
-npx hardhat run scripts/update_blockalizer_v5.ts --network goerli
 
 ### Report gas
 
