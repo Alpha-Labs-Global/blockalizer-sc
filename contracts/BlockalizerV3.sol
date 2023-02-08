@@ -126,6 +126,7 @@ contract BlockalizerGenerationV2 is Ownable {
 
     // Mapping owner address to token count
     mapping(address => uint256) private _balances;
+    mapping(bytes32 => bool) private _consumed;
 
     uint256 public startTime;
     uint public mintPrice;
@@ -154,6 +155,12 @@ contract BlockalizerGenerationV2 is Ownable {
     function incrementTokenCount(address owner) public onlyOwner {
         _balances[owner]++;
         _tokenIdCounter.increment();
+    }
+
+    function consume(bytes32 hashed) public onlyOwner returns(bool) {
+        bool previousValue = _consumed[hashed];
+        _consumed[hashed] = true;
+        return !previousValue;
     }
 
     function balanceOf(address owner) public view returns (uint256) {
