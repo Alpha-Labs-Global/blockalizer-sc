@@ -20,7 +20,7 @@ export async function multiMint(
     const uriBytes = ethers.utils.toUtf8Bytes(uri);
 
     tokenId = (await collection.currentTokenId()).toNumber();
-    const sig3 = await getSignature(uriBytes, tokenId, owner);
+    const sig3 = await getSignature(owner, uriBytes);
     await controller.connect(minter).publicMint(uriBytes, sig3, options);
   }
 }

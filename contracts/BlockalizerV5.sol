@@ -191,7 +191,7 @@ contract BlockalizerControllerV3 is
             revert MintNotLive();
         }
 
-        checkMintRequirements(generationId, _uri, sig, tokenId);
+        checkMintRequirements(generationId, _uri, sig);
 
         collection.safeMint(_msgSender(), tokenId);
         collection.setTokenURI(tokenId, string(_uri));
@@ -222,7 +222,7 @@ contract BlockalizerControllerV3 is
             revert MintNotLive();
         }
 
-        checkMintRequirements(generationId, _uri, sig, tokenId);
+        checkMintRequirements(generationId, _uri, sig);
 
         collection.safeMint(_msgSender(), tokenId);
         collection.setTokenURI(tokenId, string(_uri));
@@ -233,8 +233,7 @@ contract BlockalizerControllerV3 is
     function checkMintRequirements(
         uint256 _generationId,
         bytes memory _uri,
-        bytes memory sig,
-        uint256 tokenId
+        bytes memory sig
     ) internal {
         BlockalizerGenerationV2 _generation = BlockalizerGenerationV2(
             _generations[_generationId]
@@ -248,11 +247,16 @@ contract BlockalizerControllerV3 is
             revert MaxMinted(_generation.maxSupply());
         }
 
-        address recovered = recoverAddress(
-            keccak256(abi.encodePacked(_uri, tokenId)),
+        (bytes32 hashed, address recovered) = recoverAddress(
+            keccak256(abi.encodePacked(_uri)),
             sig
         );
         if (!hasRole(AUTHORIZER_ROLE, recovered)) {
+            revert MintNotAllowed(_msgSender());
+        }
+
+        if (!_generation.consume(hashed)) {
+            // if consumed mapping was already set to true
             revert MintNotAllowed(_msgSender());
         }
 
@@ -267,10 +271,10 @@ contract BlockalizerControllerV3 is
     function recoverAddress(
         bytes32 hash,
         bytes memory signature
-    ) internal pure returns (address) {
-        return
-            keccak256(
-                abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)
-            ).recover(signature);
+    ) internal pure returns (bytes32, address) {
+        bytes32 hashed = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)
+        );
+        return (hashed, hashed.recover(signature));
     }
 }
