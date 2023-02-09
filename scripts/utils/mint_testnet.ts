@@ -8,14 +8,14 @@ import { MerkleTree } from "merkletreejs";
 import keccak256 from "keccak256";
 
 import {
-  BlockalizerControllerV3,
+  BlockalizerControllerV5,
   BlockalizerV3,
   BlockalizerGenerationV2,
 } from "../../artifacts/types";
 
-import { abi as controllerABI } from "../../artifacts/contracts/BlockalizerV5.sol/BlockalizerControllerV3.json";
+import { abi as controllerABI } from "../../artifacts/contracts/BlockalizerControllerV5.sol/BlockalizerControllerV5.json";
 import { abi as collectionABI } from "../../artifacts/contracts/BlockalizerV3.sol/BlockalizerV3.json";
-import { abi as generationABI } from "../../artifacts/contracts/BlockalizerV3.sol/BlockalizerGenerationV2.json";
+import { abi as generationABI } from "../../artifacts/contracts/BlockalizerGenerationV2.sol/BlockalizerGenerationV2.json";
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "private_key";
 const ALCHEMY_GOERLI_API_KEY = process.env.ALCHEMY_GOERLI_API_KEY;
@@ -31,7 +31,7 @@ const controller = new ethers.Contract(
   CONTROLLER_ADDRESS,
   controllerABI,
   signer
-) as BlockalizerControllerV3;
+) as BlockalizerControllerV5;
 
 async function getCount() {
   const collectionAddress = await controller.getCollection(BigNumber.from(0));

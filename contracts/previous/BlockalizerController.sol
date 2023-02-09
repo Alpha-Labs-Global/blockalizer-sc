@@ -1,8 +1,6 @@
-// contracts/BlockalizerV4.sol
+// contracts/BlockalizerController.sol
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
-
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
@@ -10,10 +8,11 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 
-import "./interfaces/IBlockalizer.sol";
-import "./BlockalizerV3.sol";
+import "../interfaces/IBlockalizer.sol";
+import "../BlockalizerGenerationV2.sol";
+import "../BlockalizerV3.sol";
 
-contract BlockalizerControllerV2 is
+contract BlockalizerController is
     Initializable,
     AccessControlUpgradeable,
     UUPSUpgradeable
@@ -188,14 +187,5 @@ contract BlockalizerControllerV2 is
     function withdrawAll() public onlyRole(UPGRADER_ROLE) {
         address payable _to = payable(msg.sender);
         _to.transfer(address(this).balance);
-    }
-
-    function setTokenURI(
-        uint256 _collectionId,
-        uint256 _tokenId,
-        string memory _uri
-    ) public onlyRole(UPGRADER_ROLE) {
-        IBlockalizer collection = IBlockalizer(_collections[_collectionId]);
-        collection.setTokenURI(_tokenId, _uri);
     }
 }

@@ -1,12 +1,12 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import { BlockalizerControllerV3, BlockalizerV3 } from "../../artifacts/types";
+import { BlockalizerControllerV5, BlockalizerV3 } from "../../artifacts/types";
 import { BigNumber } from "ethers";
 
 import { getSignature } from "./signature";
 
 export async function multiMint(
-  controller: BlockalizerControllerV3,
+  controller: BlockalizerControllerV5,
   collection: BlockalizerV3,
   minter: SignerWithAddress,
   owner: SignerWithAddress,

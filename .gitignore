@@ -3,7 +3,6 @@ node_modules
 coverage
 coverage.json
 typechain
-.openzeppelin
 
 # Hardhat files
 cache
@@ -12,7 +11,6 @@ artifacts
 
 node_modules
 .env
-.openzeppelin
 coverage
 coverage.json
 typechain
@@ -23,4 +21,3 @@ artifacts
 
 # Custom
 WIP
-.openzeppelin/unknown-31337.json

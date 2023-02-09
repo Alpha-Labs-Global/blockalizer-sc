@@ -8,14 +8,14 @@ import { MerkleTree } from "merkletreejs";
 import keccak256 from "keccak256";
 
 import {
-  BlockalizerControllerV3,
+  BlockalizerControllerV5,
   BlockalizerV3,
   BlockalizerGenerationV2,
 } from "../../artifacts/types";
 
-import { abi as controllerABI } from "../../artifacts/contracts/BlockalizerV5.sol/BlockalizerControllerV3.json";
+import { abi as controllerABI } from "../../artifacts/contracts/BlockalizerControllerV5.sol/BlockalizerControllerV5.json";
 import { abi as collectionABI } from "../../artifacts/contracts/BlockalizerV3.sol/BlockalizerV3.json";
-import { abi as generationABI } from "../../artifacts/contracts/BlockalizerV3.sol/BlockalizerGenerationV2.json";
+import { abi as generationABI } from "../../artifacts/contracts/BlockalizerGenerationV2.sol/BlockalizerGenerationV2.json";
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "private_key";
 const ALCHEMY_GOERLI_API_KEY = process.env.ALCHEMY_GOERLI_API_KEY;
@@ -32,13 +32,13 @@ const controller = new ethers.Contract(
   CONTROLLER_ADDRESS,
   controllerABI,
   signer
-) as BlockalizerControllerV3;
+) as BlockalizerControllerV5;
 
 const getContracts = async (): Promise<
-  [BlockalizerControllerV3, BlockalizerGenerationV2, BlockalizerV3]
+  [BlockalizerControllerV5, BlockalizerGenerationV2, BlockalizerV3]
 > => {
   // @ts-ignore
-  const controller: BlockalizerControllerV3 = new ethers.Contract(
+  const controller: BlockalizerControllerV5 = new ethers.Contract(
     CONTROLLER_ADDRESS,
     controllerABI,
     signer

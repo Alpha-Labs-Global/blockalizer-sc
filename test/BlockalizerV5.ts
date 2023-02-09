@@ -7,7 +7,7 @@ import { MerkleTree } from "merkletreejs";
 import keccak256 from "keccak256";
 
 import {
-  BlockalizerControllerV3,
+  BlockalizerControllerV5,
   BlockalizerGenerationV2,
   BlockalizerV3,
 } from "../artifacts/types";
@@ -18,7 +18,7 @@ import { multiMint } from "./utils/minting";
 const _INTERFACE_ID_IERC721 = "0x80ac58cd";
 
 describe("BlockalizerV5", function () {
-  let instance: BlockalizerControllerV3;
+  let instance: BlockalizerControllerV5;
   let instanceCollection: BlockalizerV3;
   let instanceGeneration: BlockalizerGenerationV2;
   let owner: SignerWithAddress;
@@ -55,7 +55,7 @@ describe("BlockalizerV5", function () {
 
   beforeEach(async function () {
     const ContractFactory = await ethers.getContractFactory(
-      "BlockalizerControllerV3"
+      "BlockalizerControllerV5"
     );
 
     //@ts-ignore
@@ -110,7 +110,7 @@ describe("BlockalizerV5", function () {
 
   it("upgrades", async function () {
     const ContractFactory = await ethers.getContractFactory(
-      "BlockalizerControllerV3"
+      "BlockalizerControllerV5"
     );
     // @ts-ignore
     const secondInstance: BlockalizerControllerV2TestContract =

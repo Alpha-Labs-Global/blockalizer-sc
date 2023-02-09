@@ -28,7 +28,7 @@ IMPLEMENTATION ADDRESS V2 `0x0fa9288d6f3090c3456d84267dcfe8bed245cdc3`
 
 ```
 npx hardhat run scripts/update_blockalizer_v5.ts --network goerli
-npx hardhat verify --network goerli 0x12d146fe339de2c0a6974c43724d153a87a0b237
+npx hardhat verify --contract contracts/BlockalizerControllerV5.sol:BlockalizerControllerV5 --network goerli 0x5c7bd0674da9c5c29f28adeac256a78447a0052c
 ```
 
 ### To update
