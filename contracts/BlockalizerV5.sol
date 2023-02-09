@@ -16,7 +16,7 @@ import "./interfaces/IBlockalizer.sol";
 import "./BlockalizerV3.sol";
 
 // uncomment this line when debugging
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 contract BlockalizerControllerV3 is
     Initializable,
@@ -48,6 +48,8 @@ contract BlockalizerControllerV3 is
     bytes32 public merkleRoot;
 
     bytes32 public constant AUTHORIZER_ROLE = keccak256("AUTHORIZER_ROLE");
+
+    mapping(bytes32 => bool) private _seen;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -191,7 +193,7 @@ contract BlockalizerControllerV3 is
             revert MintNotLive();
         }
 
-        checkMintRequirements(generationId, _uri, sig, tokenId);
+        checkMintRequirements(generationId, _uri, sig);
 
         collection.safeMint(_msgSender(), tokenId);
         collection.setTokenURI(tokenId, string(_uri));
@@ -222,7 +224,7 @@ contract BlockalizerControllerV3 is
             revert MintNotLive();
         }
 
-        checkMintRequirements(generationId, _uri, sig, tokenId);
+        checkMintRequirements(generationId, _uri, sig);
 
         collection.safeMint(_msgSender(), tokenId);
         collection.setTokenURI(tokenId, string(_uri));
@@ -233,8 +235,7 @@ contract BlockalizerControllerV3 is
     function checkMintRequirements(
         uint256 _generationId,
         bytes memory _uri,
-        bytes memory sig,
-        uint256 tokenId
+        bytes memory sig
     ) internal {
         BlockalizerGenerationV2 _generation = BlockalizerGenerationV2(
             _generations[_generationId]
@@ -248,11 +249,16 @@ contract BlockalizerControllerV3 is
             revert MaxMinted(_generation.maxSupply());
         }
 
-        address recovered = recoverAddress(
-            keccak256(abi.encodePacked(_uri, tokenId)),
+        (bytes32 hashed, address recovered) = recoverAddress(
+            keccak256(abi.encodePacked(_uri)),
             sig
         );
         if (!hasRole(AUTHORIZER_ROLE, recovered)) {
+            revert MintNotAllowed(_msgSender());
+        }
+
+        if (seenBefore(hashed)) {
+            // if consumed mapping was already set to true
             revert MintNotAllowed(_msgSender());
         }
 
@@ -267,10 +273,16 @@ contract BlockalizerControllerV3 is
     function recoverAddress(
         bytes32 hash,
         bytes memory signature
-    ) internal pure returns (address) {
-        return
-            keccak256(
-                abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)
-            ).recover(signature);
+    ) internal pure returns (bytes32, address) {
+        bytes32 hashed = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)
+        );
+        return (hashed, hashed.recover(signature));
+    }
+
+    function seenBefore(bytes32 hashed) internal returns (bool) {
+        bool previouslySeen = _seen[hashed];
+        _seen[hashed] = true;
+        return previouslySeen;
     }
 }

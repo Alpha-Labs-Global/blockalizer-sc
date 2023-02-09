@@ -150,7 +150,7 @@ describe("BlockalizerV5", function () {
 
     const uri = "https://www.example.com/cat.json";
     const uriBytes = ethers.utils.toUtf8Bytes(uri);
-    const sig = await getSignature(uriBytes, 0, owner);
+    const sig = await getSignature(uriBytes, owner);
 
     expect(await instanceCollection.totalSupply()).to.equal(0);
 
@@ -170,14 +170,19 @@ describe("BlockalizerV5", function () {
     expect(await instanceCollection.tokenURI(BigNumber.from(0))).to.equal(uri);
 
     // signed with wrong signature
-    const wrongSig = await getSignature(uriBytes, 1, addr1);
+    const wrongSig = await getSignature(uriBytes, addr1);
     await expect(
       instance.publicMint(uriBytes, wrongSig, options)
     ).to.be.revertedWithCustomError(instance, "MintNotAllowed");
 
+    // signature used again
+    await expect(
+      instance.publicMint(uriBytes, sig, options)
+    ).to.be.revertedWithCustomError(instance, "MintNotAllowed");
+
     // not enough ether
     const wrongMintValue = ethers.utils.parseEther("0.009");
-    const sig2 = await getSignature(uriBytes, 1, owner);
+    const sig2 = await getSignature(uriBytes, owner);
     await expect(instance.publicMint(uriBytes, sig2, { value: wrongMintValue }))
       .to.be.revertedWithCustomError(instance, "PaymentDeficit")
       .withArgs(wrongMintValue, mintValue);
@@ -200,20 +205,17 @@ describe("BlockalizerV5", function () {
     expect(await instanceCollection.totalSupply()).to.equal(0);
 
     const options = { value: mintValue };
-    tokenId = (await instanceCollection.currentTokenId()).toNumber();
-    const sig1 = await getSignature(uriBytes1, tokenId, owner);
+    const sig1 = await getSignature(uriBytes1, owner);
     await expect(instance.connect(addr1).publicMint(uriBytes1, sig1, options))
       .to.emit(instanceCollection, "Transfer")
       .withArgs(ethers.constants.AddressZero, addr1.address, 0);
 
-    tokenId = (await instanceCollection.currentTokenId()).toNumber();
-    const sig2 = await getSignature(uriBytes2, tokenId, owner);
+    const sig2 = await getSignature(uriBytes2, owner);
     await expect(instance.connect(addr1).publicMint(uriBytes2, sig2, options))
       .to.emit(instanceCollection, "Transfer")
       .withArgs(ethers.constants.AddressZero, addr1.address, 1);
 
-    tokenId = (await instanceCollection.currentTokenId()).toNumber();
-    const sig3 = await getSignature(uriBytes3, tokenId, owner);
+    const sig3 = await getSignature(uriBytes3, owner);
     await expect(instance.connect(addr1).publicMint(uriBytes3, sig3, options))
       .to.emit(instanceCollection, "Transfer")
       .withArgs(ethers.constants.AddressZero, addr1.address, 2);
@@ -277,8 +279,7 @@ describe("BlockalizerV5", function () {
     await multiMintHelper(owner, 5);
 
     const uriBytes = ethers.utils.toUtf8Bytes(uri);
-    const tokenId = (await instanceCollection.currentTokenId()).toNumber();
-    const sig = await getSignature(uriBytes, tokenId, owner);
+    const sig = await getSignature(uriBytes, owner);
     await expect(
       instance.publicMint(uriBytes, sig, options)
     ).to.be.revertedWithCustomError(instance, "UserMaxMinted");
@@ -327,14 +328,12 @@ describe("BlockalizerV5", function () {
 
     await time.increase(oneHour * 2);
     const uriBytes2 = ethers.utils.toUtf8Bytes(uri);
-    const tokenId2 = (await instanceCollection.currentTokenId()).toNumber();
-    const sig2 = await getSignature(uriBytes2, tokenId2, owner);
+    const sig2 = await getSignature(uriBytes2, owner);
     await instance.publicMint(uriBytes2, sig2, options);
     expect(await instanceCollection.totalSupply()).to.equal(11);
 
     const uriBytes3 = ethers.utils.toUtf8Bytes(uri);
-    const tokenId3 = (await instanceCollection.currentTokenId()).toNumber();
-    const sig3 = await getSignature(uriBytes3, tokenId3, owner);
+    const sig3 = await getSignature(uriBytes3, owner);
     await time.increase(oneMonthInSeconds * 2);
     await expect(
       instance.publicMint(uriBytes3, sig3, options)
@@ -383,8 +382,7 @@ describe("BlockalizerV5", function () {
     const uri = "https://www.example.com/cat.json";
     const options = { value: mintValue };
     const uriBytes = ethers.utils.toUtf8Bytes(uri);
-    const tokenId = (await instanceCollection.currentTokenId()).toNumber();
-    const sig = await getSignature(uriBytes, tokenId, owner);
+    const sig = await getSignature(uriBytes, owner);
     await instance.connect(addr2).preMint(uriBytes, sig, proof, options);
     expect(await instanceCollection.totalSupply()).to.equal(11);
 

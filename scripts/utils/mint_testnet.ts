@@ -1,4 +1,4 @@
-import dotenv from 'dotenv'
+import dotenv from "dotenv";
 dotenv.config({
   path: __dirname + "/../../.env",
 });
@@ -67,20 +67,24 @@ export async function isLive() {
   const max = (await generation.maxSupply()).toNumber();
   const count = (await generation.getTokenCount()).toNumber();
   const today = new Date(Date.now());
-  console.log(gen, start, end, count, today);
+  console.log("Generation: ", gen);
+  console.log("Start Time: ", start);
+  console.log("End time: ", end);
+  console.log("Minted so far: ", count);
   const live = today > start && today < end && count < max;
   const acceptPreMint = today < end && count < max;
-  console.log(live, acceptPreMint);
+  console.log("Pre-mint: ", acceptPreMint);
+  console.log("Public mint: ", live);
   return live;
 }
 
 export async function startNewGeneration() {
   const mintPrice = ethers.utils.parseEther("0.001");
-  const maxSupply = BigNumber.from(20);
+  const maxSupply = BigNumber.from(100);
   const oneWeek = 7 * 24 * 60 * 60;
   const twoDays = 2 * 24 * 60 * 60;
   const now = BigNumber.from(Math.floor(Date.now() / 1000));
-  const startTime = now.add(twoDays);
+  const startTime = now;
   const expiryTime = now.add(oneWeek);
   const maxMintsPerWallet = BigNumber.from(5);
   await controller.startGeneration(
@@ -132,6 +136,19 @@ function getProof(addresses: Array<string>, index: number) {
   return proof;
 }
 
+function decodeErrorName(e: any): string {
+  if (e.code == "UNPREDICTABLE_GAS_LIMIT") {
+    const errorId = e.error.error.error.data.slice(0, 10);
+    for (const [signature, errorFragment] of Object.entries(
+      controller.interface.errors
+    )) {
+      const customErrorId = ethers.utils.id(signature).slice(0, 10);
+      if (errorId == customErrorId) return errorFragment.name;
+    }
+  }
+  return e.code;
+}
+
 // gen1: 0x6Ad177F26b0a46a4cBc3Fc50C3dDfe69CaDb1009
 
 const whitelisted = [
@@ -156,16 +173,24 @@ async function preMint(proof: string[]) {
   const options = { value: mintPrice };
   try {
     const tx = await controller.preMint(uriBytes, sig, proof, options);
-    // const receipt = await tx.wait();
+    console.log("transaction");
+    const receipt = await tx.wait();
+    console.log("receipt");
   } catch (e: any) {
-    console.log(e);
+    const errorName = decodeErrorName(e);
+    console.log(errorName);
+
+    // console.log(controller.interface.errors);
+    // controller.interface.decodeErrorResult
+    // const x = controller.interface.decodeErrorResult();
+    // console.log(x);
   }
 }
 
 // addMerkleRoot(whitelisted);
-const proof = getProof(whitelisted, 0);
-preMint(proof);
-// isLive();
+// const proof = getProof(whitelisted, 0);
+// preMint(proof);
+isLive();
 // isAuthorized(signer.address);
 // startNewGeneration();
 // mintToken();
